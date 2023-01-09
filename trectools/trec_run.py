@@ -39,6 +39,20 @@ class TrecRun(object):
     def rename_runid(self, name):
         self.run_data["system"] = name
 
+    def validate_run_format(self):
+        # any empty values in other columns will results in a NaN in the last column
+        # (i.e., `system` column).
+        check_df = self.run_data["system"].isnull()
+        if any(check_df):
+            malformed_line = check_df.argmax()
+            raise ValueError(f"Malformed line {malformed_line}.")
+
+        # check for duplicate docids for the the same query
+        check_df = self.run_data.duplicated(subset=["query", "docid"])
+        if any(check_df):
+            malformed_line = check_df.argmax()
+            raise ValueError(f"Duplicated docid in line {malformed_line}.")
+
     def read_run(self, filename, run_header=None):
         # Replace with default argument for run_header
         if run_header is None:
@@ -49,6 +63,7 @@ class TrecRun(object):
 
         # Read data from file
         self.run_data = pd.read_csv(filename, sep="\s+", names=run_header)
+        self.validate_run_format()
 
         # Enforce string type on docid column (if present)
         if "docid" in self.run_data:
@@ -76,6 +91,8 @@ class TrecRun(object):
                 raise ValueError(f"Required column(s) {missing} not present in supplied dataframe")
 
         self.run_data = df.copy()
+        self.validate_run_format()
+
         ## Enforce string type on docid column (if present)
         if "docid" in self.run_data:
             self.run_data["docid"] = self.run_data["docid"].astype(str)
