@@ -258,8 +258,8 @@ class TrecEval:
 
             Returns
             --------
-            if per_query == True: returns a pandas dataframe with two cols (query, MAP@X)
-            else: returns a float value representing the MAP@deph.
+            if per_query == True: returns a pandas dataframe with two cols (query, recip_rank@X)
+            else: returns a float value representing the recip_rank@depth.
 
         """
 
