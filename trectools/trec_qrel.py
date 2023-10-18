@@ -195,7 +195,7 @@ class TrecQrel:
                 print("ERROR in filtering topics")
                 return None
             print("Resulting topics being used: ", r["query"].unique())
-        return metrics.confusion_matrix(r["rel_x"], r["rel_y"], labels)
+        return metrics.confusion_matrix(r["rel_x"], r["rel_y"], labels=labels)
 
     def explore_agreement(self, another_qrel, topic):
         """
