@@ -194,7 +194,7 @@ Code Snippets for generating and exporting document pools using different poolin
 See ipython notebook [here](https://github.com/joaopalotti/trectools/blob/master/examples/Example2_Making_Doc_Pools.ipynb).
 
 ```python
-from trectools import TrecPool, TrecRun
+from trectools import TrecPoolMaker, TrecRun
 
 r1 = TrecRun("./robust03/runs/input.aplrob03a.gz")
 r2 = TrecRun("./robust03/runs/input.UIUC03Rd1.gz")
@@ -204,10 +204,10 @@ len(r1.topics()) # 100 topics
 # Creates document pools with r1 and r2 using different strategies:
 
 # Strategy1: Creates a pool with top 10 documents of each run:
-pool1 = TrecPool.make_pool([r1, r2], strategy="topX", topX=10) # Pool with 1636 unique documents.
+pool1 = TrecPoolMaker().make_pool([r1, r2], strategy="topX", topX=10) # Pool with 1636 unique documents.
 
 # Strategy2: Creates a pool with 2000 documents (20 per topic) using the reciprocal ranking strategy by Gordon, Clake and Buettcher:
-pool2 = TrecPool.make_pool([r1,r2], strategy="rrf", topX=20, rrf_den=60) # Pool with 2000 unique documents.
+pool2 = TrecPoolMaker().make_pool([r1,r2], strategy="rrf", topX=20, rrf_den=60) # Pool with 2000 unique documents.
 
 # Check to see which pool covers better my run r1
 pool1.check_coverage(r1, topX=10) # 10.0
