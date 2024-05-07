@@ -734,11 +734,12 @@ class TrecEval:
         if removeUnjudged:
             merged = merged[~merged.rel.isnull()]
 
-        n_relevant_docs = self.get_relevant_documents(per_query = True)
+        n_relevant_docs = self.get_relevant_documents(per_query = True) # pd.Series with the number of relevant documents per query
 
         topX = merged.groupby("query")[["query","docid","rel"]].head(depth)
         topX[label] = topX["rel"] > 0
-        rX_per_query = topX[["query", label]].groupby("query").sum().astype(int) / n_relevant_docs
+        rX_per_query = topX[["query", label]].groupby("query").sum().astype(int).div(n_relevant_docs, axis=0) # pd.DataFrame divided by pd.Series
+        # TODO: check if div need operations like how='left'
 
         if per_query:
             """ This will return a pandas dataframe with ["query", "R@X"] values """
