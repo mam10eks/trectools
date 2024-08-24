@@ -6,14 +6,14 @@ class TestTrecEval(unittest.TestCase):
 
     def setUp(self):
 
-        run1 = TrecRun("./files/r4.run")
-        qrels1 = TrecQrel("./files/qrel1.txt")
+        run1 = TrecRun("./unittests/files/r4.run")
+        qrels1 = TrecQrel("./unittests/files/qrel1.txt")
 
-        run2 = TrecRun("./files/input.uic0301")
-        qrels2 = TrecQrel("./files/robust03_cs_qrels.txt")
+        run2 = TrecRun("./unittests/files/input.uic0301")
+        qrels2 = TrecQrel("./unittests/files/robust03_cs_qrels.txt")
 
         # Contains the first 30 documents for the first 10 topics in input.uic0301
-        run3 = TrecRun("./files/input.uic0301_top30")
+        run3 = TrecRun("./unittests/files/input.uic0301_top30")
         self.common_topics = ["303", "307", "310", "314", "320", "322", "325", "330", "336", "341"]
         self.teval1 = TrecEval(run1, qrels1)
         self.teval2 = TrecEval(run2, qrels2)
@@ -80,6 +80,41 @@ class TestTrecEval(unittest.TestCase):
         results = self.teval2.get_precision(depth=30, trec_eval=True, per_query=True)
         correct_results = [0.1333, 0.0333, 0.5333]
         values = map(float, results.loc[["607", "433", "375"]].values)
+        for v, c in zip(values, correct_results):
+            self.assertAlmostEqual(v, c, places=4)
+
+    def test_get_recall(self):
+        value = self.teval1.get_recall(depth=1000, trec_eval=True)
+        self.assertAlmostEqual(value, 0.3889, places=4)
+
+        expected_results = {
+            5: 0.0858,
+            10: 0.1314,
+            15: 0.1686,
+            20: 0.1968,
+            30: 0.2530,
+            100: 0.4243,
+            200: 0.5323,
+            500: 0.6569,
+            1000: 0.7518
+        }
+        for recall_at in expected_results.keys():
+            value = self.teval2.get_recall(depth=recall_at, trec_eval=True)
+            self.assertAlmostEqual(value, expected_results[recall_at], places=4)
+        
+        values1 = self.teval2.get_recall(depth=30, per_query=True, trec_eval=True).loc[self.common_topics].values
+        values2 = self.teval3.get_recall(depth=30, per_query=True, trec_eval=True).loc[self.common_topics].values
+        for v1, v2 in zip(values1, values2):
+            self.assertAlmostEqual(v1, v2, places=4)
+
+        values1 = self.teval2.get_recall(depth=500, per_query=True, trec_eval=True).loc[self.common_topics].values
+        values2 = self.teval3.get_recall(depth=500, per_query=True, trec_eval=True).loc[self.common_topics].values
+        for v1, v2 in zip(values1, values2):
+            self.assertNotAlmostEqual(float(v1), float(v2), places=4)
+
+        results = self.teval2.get_recall(depth=30, trec_eval=True, per_query=True)
+        correct_results = [0.3636, 0.0769, 0.2000, 0.1000]
+        values = map(float, results.loc[["607", "433", "375", "303"]].values)
         for v, c in zip(values, correct_results):
             self.assertAlmostEqual(v, c, places=4)
 
