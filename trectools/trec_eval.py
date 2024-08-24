@@ -63,6 +63,12 @@ class TrecEval:
                 precision_per_query.rename(columns={"P@%d" % (v): "value"}, inplace=True)
                 results_per_query.append(precision_per_query)
 
+                recall_per_query = self.get_recall(depth=v, per_query=True, trec_eval=True).reset_index()
+                recall_per_query["metric"] = "R_%d" % (v)
+                recall_per_query.rename(columns={"R@%d" % (v): "value"}, inplace=True)
+                results_per_query.append(recall_per_query)
+
+
                 ndcg_per_query = self.get_ndcg(depth=v, per_query=True, trec_eval=True).reset_index()
                 ndcg_per_query["metric"] = "NDCG_%d" % (v)
                 ndcg_per_query.rename(columns={"NDCG@%d" % (v): "value"}, inplace=True)
@@ -99,9 +105,11 @@ class TrecEval:
             results_per_query.append(recip_rank)
 
         ps = {}
+        re = {}
         ndcg = {}
         for v in [5, 10, 15, 20, 30, 100, 200, 500, 1000]:
             ps[v] = self.get_precision(depth=v, per_query=False, trec_eval=True)
+            re[v] = self.get_recall(depth=v, per_query=False, trec_eval=True)
             ndcg[v] = self.get_ndcg(depth=v, per_query=False, trec_eval=True)
         map_ = self.get_map(depth=10000, per_query=False, trec_eval=True)
         gm_map_ = self.get_geometric_map(depth=10000, trec_eval=True)
@@ -129,6 +137,15 @@ class TrecEval:
             {"metric": "P_200", "query": "all", "value": ps[200]},
             {"metric": "P_500", "query": "all", "value": ps[500]},
             {"metric": "P_1000", "query": "all", "value": ps[1000]},
+            {"metric": "R_5", "query": "all", "value": re[5]},
+            {"metric": "R_10", "query": "all", "value": re[10]},
+            {"metric": "R_15", "query": "all", "value": re[15]},
+            {"metric": "R_20", "query": "all", "value": re[20]},
+            {"metric": "R_30", "query": "all", "value": re[30]},
+            {"metric": "R_100", "query": "all", "value": re[100]},
+            {"metric": "R_200", "query": "all", "value": re[200]},
+            {"metric": "R_500", "query": "all", "value": re[500]},
+            {"metric": "R_1000", "query": "all", "value": re[1000]},
             {"metric": "NDCG_5", "query": "all", "value": ndcg[5]},
             {"metric": "NDCG_10", "query": "all", "value": ndcg[10]},
             {"metric": "NDCG_15", "query": "all", "value": ndcg[15]},
@@ -683,6 +700,53 @@ class TrecEval:
             """ This will return a pandas dataframe with ["query", "P@X"] values """
             return pX_per_query
         return (pX_per_query.sum() / nqueries)[label]
+    
+    def get_recall(self, depth=1000, per_query=False, trec_eval=True, removeUnjudged=False):
+        """
+            Calculates the binary recall at depth d (R@d).
+
+            Params
+            -------
+            depth: the evaluation depth. Default = 1000
+            per_query: If True, runs the evaluation per query. Default = False
+            trec_eval: set to True if result should be the same as trec_eval, e.g., sort documents by score first. Default = True.
+            removeUnjudged: set to True if you want to remove the unjudged documents before calculating this metric.
+
+            Returns
+            --------
+            if per_query == True: returns a pandas dataframe with two cols (query, P@d)
+            else: returns a float value representing the RPrec.
+
+        """
+        label = "R@%d" % (depth)
+
+        # check number of queries
+        nqueries = len(self.run.topics())
+
+        qrels = self.qrels.qrels_data
+        run = self.run.run_data
+
+        merged = pd.merge(run[["query", "docid", "score"]], qrels[["query","docid","rel"]], how="left")
+
+        if trec_eval:
+            merged.sort_values(["query", "score", "docid"], ascending=[True,False,False], inplace=True)
+
+        if removeUnjudged:
+            merged = merged[~merged.rel.isnull()]
+
+        n_relevant_docs = self.get_relevant_documents(per_query = True) # pd.Series with the number of relevant documents per query
+
+        topX = merged.groupby("query")[["query","docid","rel"]].head(depth)
+        topX[label] = topX["rel"] > 0
+        rX_per_query = topX[["query", label]].groupby("query").sum().astype(int).div(n_relevant_docs, axis=0) # pd.DataFrame divided by pd.Series
+        # TODO: check if div need operations like how='left'
+
+        if per_query:
+            """ This will return a pandas dataframe with ["query", "R@X"] values """
+            return rX_per_query
+        return (rX_per_query.sum() / nqueries)[label]
+
+
 
     def get_rbp(self, p=0.8, depth=1000, per_query=False, binary_topical_relevance=True, average_ties=True, removeUnjudged=False):
         """
