@@ -361,4 +361,6 @@ This project belongs to the IR community. We welcome all kinds of contributions.
 <a href="https://github.com/ammsa"><img src="https://avatars.githubusercontent.com/u/748271?v=4" class="avatar-user" width="50px;"/></a> 
 <a href="https://github.com/cakiki"><img src="https://avatars.githubusercontent.com/u/3664563?v=4" class="avatar-user" width="50px;"/></a> 
 <a href="https://github.com/schmorak"><img src="https://avatars.githubusercontent.com/u/107064573?v=4" class="avatar-user" width="50px;"/></a> 
+<a href="https://github.com/hyusterr"><img src="https://avatars.githubusercontent.com/u/52968111?v=4" class="avatar-user" width="50px;"/></a> 
+<a href="https://github.com/ZahraShekarchiTR"><img src="https://avatars.githubusercontent.com/u/160944281?v=4" class="avatar-user" width="50px;"/></a> 
 

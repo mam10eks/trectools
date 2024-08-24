@@ -8,7 +8,6 @@ import logging
 import os
 
 # External libraries
-import sarge
 import pandas as pd
 import numpy as np
 

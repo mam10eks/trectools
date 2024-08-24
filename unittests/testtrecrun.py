@@ -5,7 +5,7 @@ from trectools import TrecRun, TrecQrel
 class TestTrecRun(unittest.TestCase):
 
     def setUp(self):
-        self.run = TrecRun("./files/r1.run")
+        self.run = TrecRun("./unittests/files/r1.run")
 
     def tearDown(self):
         pass
@@ -19,10 +19,10 @@ class TestTrecRun(unittest.TestCase):
 
     def test_get_full_filename_path(self):
         fullname = self.run.get_full_filename_path()
-        self.assertTrue("/files/r1.run" in fullname)
+        self.assertTrue("/unittests/files/r1.run" in fullname)
 
     def test_topics_intersection_with(self):
-        another_run = TrecRun("./files/r2.run")
+        another_run = TrecRun("./unittests/files/r2.run")
         intersection = self.run.topics_intersection_with(another_run)
         self.assertSetEqual(intersection, {"1"})
 
